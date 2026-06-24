@@ -9,3 +9,4 @@ ON goals(user_id, is_archived);
 
 CREATE INDEX IF NOT EXISTS idx_debts_user_archived
 ON debts(user_id, is_archived);
+-- Schema aligned and verified with live production DB on June 2026
