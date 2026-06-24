@@ -3,18 +3,20 @@ import { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { useForm } from '../../../hooks/useForm';
-import { useRecordPayment } from '../../../hooks/useDebts';
+import { useRecordPayment, useDeleteDebt } from '../../../hooks/useDebts';
 import type { Debt } from '../../../types/database';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit2, Trash2 } from 'lucide-react';
 
 interface RecordPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   debt: Debt | null;
+  onEdit?: () => void;
 }
 
-export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, onClose, debt }) => {
+export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, onClose, debt, onEdit }) => {
   const recordPayment = useRecordPayment();
+  const deleteDebt = useDeleteDebt();
 
   const { values, errors, handleChange, validate, reset } = useForm({
     amount: debt?.installment_amount.toString() || '',
@@ -49,6 +51,19 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, 
     }
   };
 
+  const handleDelete = async () => {
+    if (!debt) return;
+    if (window.confirm('Are you sure you want to delete this debt? This will also remove associated transactions.')) {
+      try {
+        await deleteDebt.mutateAsync(debt.id);
+        toast.success('Debt deleted');
+        onClose();
+      } catch (err) {
+        toast.error('Failed to delete debt');
+      }
+    }
+  };
+
   if (!debt) return null;
 
   return (
@@ -58,10 +73,22 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, 
       title="Record Payment"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="bg-gray-800/50 p-4 rounded-lg mb-4">
-          <p className="text-sm text-gray-400">Recording payment for:</p>
-          <p className="font-semibold text-lg text-white">{debt.person_name}</p>
-          <p className="text-sm text-gray-400 mt-1">Outstanding Balance: ₹{debt.outstanding_balance}</p>
+        <div className="bg-gray-800/50 p-4 rounded-lg mb-4 flex justify-between items-start">
+          <div>
+            <p className="text-sm text-gray-400">Recording payment for:</p>
+            <p className="font-semibold text-lg text-white">{debt.person_name}</p>
+            <p className="text-sm text-gray-400 mt-1">Outstanding Balance: ₹{debt.outstanding_balance}</p>
+          </div>
+          <div className="flex gap-2">
+            {onEdit && (
+              <button type="button" onClick={onEdit} className="p-2 text-gray-400 hover:text-white transition-colors" title="Edit">
+                <Edit2 size={18} />
+              </button>
+            )}
+            <button type="button" onClick={handleDelete} className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors" title="Delete">
+              <Trash2 size={18} />
+            </button>
+          </div>
         </div>
 
         <Input 

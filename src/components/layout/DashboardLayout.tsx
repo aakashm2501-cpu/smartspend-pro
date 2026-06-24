@@ -1,145 +1,98 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CalendarClock, Target, Settings as SettingsIcon } from 'lucide-react';
-import { useUserRecord } from '../../hooks/useUser';
+import { LayoutDashboard, Receipt, Target, Settings as SettingsIcon, Plus, User } from 'lucide-react';
+import { UniversalAddSheet } from './UniversalAddSheet';
 
 const DashboardLayout: React.FC = () => {
-  const { data: userRecord } = useUserRecord();
-
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { to: '/cycles', label: 'Salary Cycles', icon: <CalendarClock size={20} /> },
-    { to: '/transactions', label: 'Transactions', icon: <Receipt size={20} /> },
-    { to: '/bills', label: 'Bills', icon: <CalendarClock size={20} /> },
-    { to: '/debts', label: 'Debts', icon: <Target size={20} /> },
-    { to: '/goals', label: 'Goals', icon: <Target size={20} /> },
-    { to: '/settings', label: 'Settings', icon: <SettingsIcon size={20} /> },
+    { to: '/', label: 'Home', icon: (isActive: boolean) => <LayoutDashboard size={24} strokeWidth={isActive ? 2.5 : 2} /> },
+    { to: '/transactions', label: 'Ledger', icon: (isActive: boolean) => <Receipt size={24} strokeWidth={isActive ? 2.5 : 2} /> },
+    { to: '/plan', label: 'Plan', icon: (isActive: boolean) => <Target size={24} strokeWidth={isActive ? 2.5 : 2} /> },
+    { to: '/debts', label: 'Debts', icon: (isActive: boolean) => <User size={24} strokeWidth={isActive ? 2.5 : 2} /> },
+    { to: '/settings', label: 'Settings', icon: (isActive: boolean) => <SettingsIcon size={24} strokeWidth={isActive ? 2.5 : 2} /> },
   ];
 
-  const displayName = userRecord?.first_name || 'SmartSpend User';
-  const displayEmail = userRecord?.email || '';
-  
-  let initials = 'SU';
-  if (userRecord?.first_name) {
-    initials = userRecord.first_name.substring(0, 2).toUpperCase();
-  } else if (userRecord?.email) {
-    initials = userRecord.email.substring(0, 2).toUpperCase();
-  }
-
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isAddOpen, setIsAddOpen] = React.useState(false);
 
   return (
-    <div className="flex h-screen bg-brand-navy text-white overflow-hidden">
+    <div className="flex h-screen bg-[#000000] text-white overflow-hidden font-sans">
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-brand-dark border-r border-gray-800 z-10">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-brand-orange tracking-tight">SmartSpend Pro</h1>
+      <aside className="hidden md:flex flex-col w-72 bg-[#000000] border-r border-[#18181B] z-10">
+        <div className="p-8 pb-4">
+          <h1 className="text-3xl font-outfit font-black tracking-tighter text-white">SmartSpend</h1>
         </div>
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-2 mt-8">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive ? 'bg-brand-orange text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                `flex items-center space-x-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+                  isActive ? 'bg-[#18181B] text-white shadow-lg' : 'text-gray-500 hover:text-white hover:bg-[#09090B]'
                 }`
               }
             >
-              {item.icon}
-              <span className="font-medium">{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  {item.icon(isActive)}
+                  <span className="font-semibold text-lg">{item.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
-        <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-brand-accent flex items-center justify-center text-sm font-bold shrink-0">
-              {initials}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium truncate">{displayName}</p>
-              <p className="text-xs text-gray-400 truncate">{displayEmail}</p>
-            </div>
-          </div>
+        
+        {/* Desktop Add Button */}
+        <div className="p-6">
+           <button 
+            onClick={() => setIsAddOpen(true)}
+            className="w-full bg-white text-black py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 active:scale-95 transition-transform"
+          >
+            <Plus size={24} />
+            <span>Add Transaction</span>
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-brand-navy pb-20 md:pb-0">
+      <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-[#000000] pb-24 md:pb-0">
         <Outlet />
       </main>
 
-      {/* Bottom Nav for Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#09090B]/90 backdrop-blur-xl border-t border-gray-800/50 flex justify-around px-2 py-2 z-50 pb-safe">
-        {[
-          { to: '/', label: 'Home', icon: <LayoutDashboard size={24} /> },
-          { to: '/transactions', label: 'Ledger', icon: <Receipt size={24} /> },
-          { to: '/debts', label: 'Debts', icon: <Target size={24} /> },
-        ].map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={() => setIsMenuOpen(false)}
-            className={({ isActive }) =>
-              `flex flex-col items-center p-2 rounded-lg transition-colors ${
-                isActive ? 'text-brand-orange' : 'text-gray-500 hover:text-gray-300'
-              }`
-            }
-          >
-            {item.icon}
-            <span className="text-[10px] mt-1 font-medium">{item.label}</span>
-          </NavLink>
-        ))}
+      {/* Bottom Nav for Mobile - Glassmorphic */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-2xl border-t border-white/5 flex justify-between items-center px-6 py-4 z-50 pb-safe">
+        <NavLink to="/" className={({ isActive }) => `flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white scale-110 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>
+          {({ isActive }) => <LayoutDashboard size={24} strokeWidth={isActive ? 2.5 : 2} />}
+        </NavLink>
         
-        {/* Menu Button */}
-        <button
-          onClick={() => setIsMenuOpen(true)}
-          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
-            isMenuOpen ? 'text-brand-orange' : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          <SettingsIcon size={24} />
-          <span className="text-[10px] mt-1 font-medium">Menu</span>
-        </button>
+        <NavLink to="/transactions" className={({ isActive }) => `flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white scale-110 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>
+          {({ isActive }) => <Receipt size={24} strokeWidth={isActive ? 2.5 : 2} />}
+        </NavLink>
+        
+        {/* Central Universal Add FAB */}
+        <div className="relative -top-6">
+          <button 
+            onClick={() => setIsAddOpen(true)}
+            className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)] active:scale-90 transition-transform duration-300"
+          >
+            <Plus size={32} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <NavLink to="/plan" className={({ isActive }) => `flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white scale-110 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>
+          {({ isActive }) => <Target size={24} strokeWidth={isActive ? 2.5 : 2} />}
+        </NavLink>
+
+        <NavLink to="/debts" className={({ isActive }) => `flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white scale-110 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>
+          {({ isActive }) => <User size={24} strokeWidth={isActive ? 2.5 : 2} />}
+        </NavLink>
+
+        <NavLink to="/settings" className={({ isActive }) => `flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white scale-110 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>
+          {({ isActive }) => <SettingsIcon size={24} strokeWidth={isActive ? 2.5 : 2} />}
+        </NavLink>
       </nav>
 
-      {/* Mobile Menu Bottom Sheet */}
-      {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 flex flex-col justify-end">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-            onClick={() => setIsMenuOpen(false)}
-          />
-          <div className="relative bg-[#09090B] border-t border-gray-800 rounded-t-3xl p-6 pb-24 animate-in slide-in-from-bottom-full duration-300">
-            <div className="w-12 h-1.5 bg-gray-800 rounded-full mx-auto mb-6" />
-            <h2 className="text-xl font-semibold mb-4 px-2">More</h2>
-            <div className="grid grid-cols-4 gap-4">
-              {[
-                { to: '/bills', label: 'Bills', icon: <CalendarClock size={24} /> },
-                { to: '/goals', label: 'Goals', icon: <Target size={24} /> },
-                { to: '/cycles', label: 'Cycles', icon: <CalendarClock size={24} /> },
-                { to: '/settings', label: 'Settings', icon: <SettingsIcon size={24} /> },
-              ].map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex flex-col items-center p-3 rounded-2xl border ${
-                      isActive 
-                        ? 'bg-brand-orange/10 border-brand-orange/30 text-brand-orange' 
-                        : 'bg-[#18181B] border-gray-800/50 text-gray-400 hover:text-white'
-                    }`
-                  }
-                >
-                  {item.icon}
-                  <span className="text-[10px] mt-2 font-medium">{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <UniversalAddSheet isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
     </div>
   );
 };

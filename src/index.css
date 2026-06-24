@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,8 +6,13 @@
 
 @layer base {
   body {
-    @apply bg-brand-navy text-white font-sans antialiased selection:bg-brand-orange/30 selection:text-white;
+    @apply bg-[#000000] text-white font-sans antialiased selection:bg-brand-orange/30 selection:text-white;
     overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6, .font-outfit {
+    font-family: 'Outfit', sans-serif;
   }
 }
 
@@ -19,8 +24,8 @@
 
 /* Custom Scrollbar for a premium feel */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -28,9 +33,9 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-800 rounded-full;
+  @apply bg-[#18181B] rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-700;
+  @apply bg-gray-800;
 }

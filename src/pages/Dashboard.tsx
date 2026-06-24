@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { ArrowUpRight, ArrowDownRight, Wallet, AlertCircle, Loader2, Plus } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { TransactionModal } from '../components/domain/transactions/TransactionModal';
 import { useActiveCycle } from '../hooks/useCycles';
 import { useTransactions } from '../hooks/useTransactions';
@@ -13,16 +13,14 @@ import {
   calculateUpcomingDebtObligations,
   calculateAvailableCash,
   calculateSafeToSpend,
-  calculateDailyAllowance,
-  calculateProjectedEndBalance,
-  calculateActualIncome,
-  calculateIncomeVariance,
-  getTransactionBehavior
+  calculateProjectedEndBalance
 } from '../utils/engines';
 
 const formatINR = (amount: number) => {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
 };
+
+import { motion } from 'framer-motion';
 
 // --- Memoized Subcomponents ---
 
@@ -40,109 +38,87 @@ const CFOBriefing = React.memo(({ hasCycle, safeToSpend, projectedEndBalance }: 
   </div>
 ));
 
-const SafeToSpendHero = React.memo(({ safeToSpend, dailyAllowance, projectedEndBalance, onAddTransaction }: { safeToSpend: number, dailyAllowance: number, projectedEndBalance: number, onAddTransaction: () => void }) => {
-  const safeToSpendParts = safeToSpend.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split('.');
+const OrbitNode = ({ action, angleOffset }: { action: any, angleOffset: number }) => {
+  // Simple circular orbit motion
   return (
-    <div className="flex flex-col items-center justify-center pt-16 pb-12 relative w-full border-b border-gray-800/50 bg-[#09090B]">
-      <div className="absolute top-0 inset-x-0 h-40 bg-brand-orange/5 blur-[100px] pointer-events-none" />
-      
-      <p className="text-gray-500 font-medium uppercase tracking-[0.3em] text-xs mb-6">Safe to Spend</p>
-      
-      <h1 className="text-8xl md:text-[10rem] font-bold tracking-tighter text-white drop-shadow-lg flex items-start leading-none">
-        <span className="text-5xl md:text-7xl text-gray-600 font-light mt-2 md:mt-4 mr-2">₹</span>
-        {safeToSpendParts[0]}
-        <span className="text-4xl md:text-6xl text-gray-500 font-medium mt-auto mb-2 md:mb-4 ml-1">.{safeToSpendParts[1] || '00'}</span>
-      </h1>
-      
-      <div className="mt-12 grid grid-cols-2 gap-4 w-full max-w-md px-6">
-        <div className="flex flex-col items-center justify-center p-4 rounded-3xl bg-[#18181B] border border-gray-800/60 shadow-inner">
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Daily Allowance</p>
-          <p className="text-xl font-semibold text-brand-orange">{formatINR(dailyAllowance)}</p>
-        </div>
-        <div className="flex flex-col items-center justify-center p-4 rounded-3xl bg-[#18181B] border border-gray-800/60 shadow-inner">
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Projected End</p>
-          <p className="text-xl font-semibold text-blue-400">{formatINR(projectedEndBalance)}</p>
-        </div>
-      </div>
-
-      <button 
-        onClick={onAddTransaction}
-        className="mt-10 bg-brand-orange hover:bg-orange-600 text-white rounded-full px-8 py-4 font-semibold text-lg flex items-center shadow-lg shadow-brand-orange/20 transition-transform active:scale-95"
+    <motion.div
+      className="absolute top-1/2 left-1/2 pointer-events-auto cursor-pointer flex items-center justify-center group"
+      initial={{ rotate: angleOffset }}
+      animate={{ rotate: angleOffset + 360 }}
+      transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+      onClick={() => window.location.href = action.route} // Basic routing since we don't have navigate here
+    >
+      <motion.div 
+        style={{ marginTop: -160 }} // Orbit radius
+        initial={{ rotate: -angleOffset }}
+        animate={{ rotate: -(angleOffset + 360) }} // counter-rotate to keep text upright
+        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        className="flex flex-col items-center justify-center relative"
       >
-        <Plus size={24} className="mr-2" />
-        Add Transaction
-      </button>
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center bg-[#09090B] border border-white/10 shadow-2xl relative z-10 transition-transform group-hover:scale-110`}>
+          <div className={`absolute inset-0 rounded-full blur-md opacity-30 -z-10 ${action.color}`} />
+          {action.icon}
+        </div>
+        <div className="absolute top-full mt-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white border border-white/10">
+            {action.label}
+          </span>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const TheOrbit = React.memo(({ safeToSpend, recommendations }: { safeToSpend: number, recommendations: any[] }) => {
+  const safeToSpendParts = safeToSpend.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split('.');
+  
+  let state: 'success' | 'warning' | 'risk' | 'recovery' = 'success';
+  if (safeToSpend < 0) state = 'risk';
+  else if (safeToSpend < 2000) state = 'warning';
+  else if (safeToSpend < 5000) state = 'recovery';
+  
+  const stateConfig = {
+    success: { glow: "bg-emerald-500/15", textColor: "text-emerald-400" },
+    recovery: { glow: "bg-teal-500/15", textColor: "text-teal-400" },
+    warning: { glow: "bg-orange-500/15", textColor: "text-brand-orange" },
+    risk: { glow: "bg-rose-500/15", textColor: "text-rose-500" },
+  };
+
+  const current = stateConfig[state];
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center relative w-full bg-[#000000] overflow-hidden min-h-screen">
+      <div className={`absolute inset-0 flex items-center justify-center pointer-events-none`}>
+         <div className={`w-96 h-96 ${current.glow} blur-[120px] rounded-full transition-colors duration-1000`} />
+      </div>
+      
+      {/* Central Hero */}
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="flex flex-col items-center relative z-10 pointer-events-none"
+      >
+        <p className={`font-bold uppercase tracking-[0.3em] text-xs mb-4 ${current.textColor} drop-shadow-md`}>
+          Safe To Spend
+        </p>
+        <h1 className="text-[100px] md:text-[140px] font-outfit font-black tracking-tighter text-white drop-shadow-2xl flex items-start leading-none">
+          <span className="text-5xl md:text-7xl text-white/40 font-light mt-4 md:mt-8 mr-2">₹</span>
+          {safeToSpendParts[0]}
+        </h1>
+      </motion.div>
+
+      {/* Orbiting Elements */}
+      <div className="absolute inset-0 z-20 pointer-events-none">
+        {recommendations.map((rec, i) => (
+          <OrbitNode key={rec.id} action={rec} angleOffset={i * (360 / Math.max(1, recommendations.length))} />
+        ))}
+      </div>
     </div>
   );
 });
 
-const ObligationSettlementEngine = React.memo(({ upcomingBills, requiredGoals, upcomingDebts }: any) => (
-  <div className="bg-brand-dark rounded-2xl p-6 border border-gray-800 mt-8">
-    <h2 className="text-lg font-bold mb-4 flex items-center">
-      <AlertCircle className="text-gray-400 mr-2" size={20} />
-      Obligation Settlement Engine
-    </h2>
-    <div className="space-y-4">
-      {[
-        { label: 'Bills', data: upcomingBills },
-        { label: 'Goals', data: requiredGoals },
-        { label: 'Debts', data: upcomingDebts }
-      ].map(({ label, data }) => (
-        <div key={label} className="flex flex-col md:flex-row md:items-center justify-between p-3 rounded-lg bg-gray-800/30 border border-gray-800/50">
-          <div className="mb-2 md:mb-0 w-1/4">
-            <span className="font-semibold text-white">{label}</span>
-            <div className={`text-xs mt-0.5 font-bold uppercase tracking-wider ${
-              data.status === 'Fully Paid' ? 'text-green-400' :
-              data.status === 'Partially Paid' ? 'text-orange-400' : 'text-red-400'
-            }`}>{data.status}</div>
-          </div>
-          <div className="flex justify-between md:justify-around w-full md:w-3/4 text-sm">
-            <div className="text-center">
-              <div className="text-gray-500 mb-1">Expected</div>
-              <div className="font-medium text-white">{formatINR(data.expected)}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-gray-500 mb-1">{label === 'Goals' ? 'Contributed' : 'Paid'}</div>
-              <div className="font-medium text-blue-400">{formatINR(data.paid)}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-gray-500 mb-1">Remaining</div>
-              <div className="font-bold text-brand-orange">{formatINR(data.remaining)}</div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-));
 
-const IncomeTrackingPanel = React.memo(({ expectedIncome, actualIncomeTotal, incomeVariance }: any) => (
-  <div className="mt-8 bg-brand-dark/30 rounded-2xl p-6 border border-gray-800">
-    <h3 className="text-gray-400 font-medium mb-4 flex items-center">
-      <Wallet className="mr-2 text-blue-400" size={18} />
-      Income Tracking (Cycle)
-    </h3>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Expected Income</p>
-        <p className="text-xl font-semibold text-gray-300">{formatINR(expectedIncome)}</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Actual Received</p>
-        <p className="text-xl font-semibold text-white">{formatINR(actualIncomeTotal)}</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Income Variance</p>
-        <div className="flex items-center space-x-2">
-          <p className={`text-xl font-semibold ${incomeVariance >= 0 ? 'text-green-400' : 'text-brand-orange'}`}>
-            {incomeVariance > 0 ? '+' : ''}{incomeVariance.toFixed(1)}%
-          </p>
-          <span className="text-xs text-gray-500">vs expected</span>
-        </div>
-      </div>
-    </div>
-  </div>
-));
 
 const Dashboard: React.FC = () => {
   console.time('Dashboard Load');
@@ -165,8 +141,6 @@ const Dashboard: React.FC = () => {
     }
   }, [isLoading]);
 
-  console.time('Dashboard Render');
-
   const hasCycle = !!activeCycle && !!userRecord;
   const txns = useMemo(() => transactions || [], [transactions]);
   const b = useMemo(() => bills || [], [bills]);
@@ -178,34 +152,26 @@ const Dashboard: React.FC = () => {
   const upcomingDebts = useMemo(() => hasCycle ? calculateUpcomingDebtObligations(activeCycle, d, txns) : { expected: 0, paid: 0, remaining: 0, status: 'Unpaid' as any }, [hasCycle, activeCycle, d, txns]);
   
   const totalCash = useMemo(() => hasCycle ? calculateAvailableCash(activeCycle, txns) : 0, [hasCycle, activeCycle, txns]);
-  
   const safeToSpend = useMemo(() => hasCycle ? calculateSafeToSpend(totalCash, upcomingBills, requiredGoals, upcomingDebts, userRecord) : 0, [hasCycle, totalCash, upcomingBills, requiredGoals, upcomingDebts, userRecord]);
-  const dailyAllowance = useMemo(() => hasCycle ? calculateDailyAllowance(safeToSpend, activeCycle) : 0, [hasCycle, safeToSpend, activeCycle]);
   const projectedEndBalance = useMemo(() => hasCycle ? calculateProjectedEndBalance(totalCash, activeCycle, txns, upcomingBills, requiredGoals, upcomingDebts) : 0, [hasCycle, totalCash, activeCycle, txns, upcomingBills, requiredGoals, upcomingDebts]);
-  
-  const spentSoFar = useMemo(() => {
-    if (!hasCycle) return 0;
-    return txns
-      .filter(t => t.status !== 'REVERSED' && t.status !== 'ARCHIVED')
-      .reduce((sum, t) => {
-        const behavior = getTransactionBehavior(t);
-        if (behavior.affectsAvailableCash && t.type === 'expense') {
-          return sum + Number(t.amount);
-        }
-        return sum;
-      }, 0);
-  }, [hasCycle, txns]);
 
-  const daysRemaining = useMemo(() => {
-    if (!hasCycle) return 0;
-    const today = new Date();
-    const endDate = new Date(activeCycle.end_date);
-    return Math.max(Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)), 0);
-  }, [hasCycle, activeCycle]);
-
-  const expectedIncome = useMemo(() => hasCycle ? Number(activeCycle.expected_income) : 0, [hasCycle, activeCycle]);
-  const actualIncomeTotal = useMemo(() => hasCycle ? calculateActualIncome(txns) : 0, [hasCycle, txns]);
-  const incomeVariance = useMemo(() => calculateIncomeVariance(expectedIncome, actualIncomeTotal), [expectedIncome, actualIncomeTotal]);
+  // Extract Top 2 Recommendations
+  const recommendations = useMemo(() => {
+    const recs = [];
+    if (safeToSpend < 0) {
+      recs.push({ id: 'critical', label: 'Over Budget', color: 'bg-red-500', route: '/transactions', icon: <AlertCircle className="text-red-400" size={24} /> });
+    }
+    if (upcomingBills.remaining > 0) {
+      recs.push({ id: 'bills', label: 'Manage Bills', color: 'bg-brand-orange', route: '/plan', icon: <AlertCircle className="text-brand-orange" size={24} /> });
+    }
+    if (recs.length < 2 && upcomingDebts.remaining > 0) {
+      recs.push({ id: 'debts', label: 'Settle Debts', color: 'bg-blue-500', route: '/debts', icon: <AlertCircle className="text-blue-400" size={24} /> });
+    }
+    if (recs.length < 2 && requiredGoals.remaining > 0) {
+      recs.push({ id: 'goals', label: 'Fund Goals', color: 'bg-emerald-500', route: '/plan', icon: <AlertCircle className="text-emerald-400" size={24} /> });
+    }
+    return recs.slice(0, 2);
+  }, [safeToSpend, upcomingBills, upcomingDebts, requiredGoals]);
 
   if (isLoading) {
     return (
@@ -215,68 +181,15 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const isDev = import.meta.env.DEV;
-
-  const renderContent = () => (
-    <div className="w-full relative pb-24 md:pb-10">
-      
-      {isDev && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 border border-gray-700 p-4 rounded-lg shadow-xl text-xs z-50 text-gray-300 opacity-90 hover:opacity-100 transition-opacity pointer-events-none">
-          <h4 className="font-bold text-white mb-2 pb-1 border-b border-gray-700">Diagnostics</h4>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-            <span>Renders:</span><span className="text-right text-brand-orange font-mono">{renderCount.current}</span>
-            <span>Cycle:</span><span className="text-right text-brand-orange font-mono truncate w-20">{activeCycle?.id?.substring(0,6) || 'None'}</span>
-            <span>Txns:</span><span className="text-right text-brand-orange font-mono">{txns.length}</span>
-            <span>Bills:</span><span className="text-right text-brand-orange font-mono">{b.length}</span>
-            <span>Goals:</span><span className="text-right text-brand-orange font-mono">{g.length}</span>
-            <span>Debts:</span><span className="text-right text-brand-orange font-mono">{d.length}</span>
-          </div>
-        </div>
-      )}
-
+  return (
+    <div className="w-full h-screen relative flex flex-col">
       {hasCycle ? (
-        <SafeToSpendHero 
-          safeToSpend={safeToSpend} 
-          dailyAllowance={dailyAllowance} 
-          projectedEndBalance={projectedEndBalance} 
-          onAddTransaction={() => setIsTxnModalOpen(true)}
-        />
+        <TheOrbit safeToSpend={safeToSpend} recommendations={recommendations} />
       ) : (
-        <div className="pt-20 px-6 max-w-7xl mx-auto">
+        <div className="pt-24 px-6 max-w-5xl mx-auto flex-1">
           <CFOBriefing hasCycle={hasCycle} safeToSpend={safeToSpend} projectedEndBalance={projectedEndBalance} />
         </div>
       )}
-
-      <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#18181B] rounded-3xl p-6 border border-gray-800/50">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-gray-400 font-medium">Available Cash</h3>
-              <div className="bg-green-500/10 p-2 rounded-xl">
-                <ArrowUpRight className="text-green-400" size={20} />
-              </div>
-            </div>
-            <p className="text-4xl font-bold tracking-tight">{formatINR(totalCash)}</p>
-            <p className="text-sm text-green-400 mt-2 font-medium">{daysRemaining} days left in cycle</p>
-          </div>
-
-          <div className="bg-[#18181B] rounded-3xl p-6 border border-gray-800/50">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-gray-400 font-medium">Spent So Far</h3>
-              <div className="bg-red-500/10 p-2 rounded-xl">
-                <ArrowDownRight className="text-red-400" size={20} />
-              </div>
-            </div>
-            <p className="text-4xl font-bold tracking-tight">{formatINR(spentSoFar)}</p>
-            <p className="text-sm text-gray-500 mt-2">Based on {txns.length} transactions</p>
-          </div>
-        </div>
-
-        {hasCycle && <ObligationSettlementEngine upcomingBills={upcomingBills} requiredGoals={requiredGoals} upcomingDebts={upcomingDebts} />}
-
-        {hasCycle && <IncomeTrackingPanel expectedIncome={expectedIncome} actualIncomeTotal={actualIncomeTotal} incomeVariance={incomeVariance} />}
-      </div>
 
       {hasCycle && (
         <TransactionModal 
@@ -287,9 +200,6 @@ const Dashboard: React.FC = () => {
       )}
     </div>
   );
-
-  console.timeEnd('Dashboard Render');
-  return renderContent();
 };
 
 export default Dashboard;

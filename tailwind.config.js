@@ -8,11 +8,11 @@ export default {
     extend: {
       colors: {
         brand: {
-          navy: "#09090B",     /* App Background - Deep Dark Zinc */
+          navy: "#000000",     /* App Background - OLED Black */
           orange: "#FF5A36",   /* Primary Action - Vibrant Coral */
           light: "#FAFAFA",    /* Text Primary */
-          dark: "#18181B",     /* Card Surface */
-          accent: "#27272A"    /* Card Border / Secondary Surface */
+          dark: "#09090B",     /* Card Surface - Zinc 950 */
+          accent: "#18181B"    /* Card Border / Secondary Surface */
         }
       },
       fontFamily: {
