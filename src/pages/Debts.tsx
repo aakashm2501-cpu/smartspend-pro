@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, Loader2, Edit2, Trash2, CheckCircle2, AlertTriangle, ArrowUpRight, ArrowDownRight, IndianRupee } from 'lucide-react';
 import { useDebts, useDeleteDebt } from '../hooks/useDebts';
@@ -39,7 +40,7 @@ const Debts: React.FC = () => {
       try {
         await deleteDebt.mutateAsync(id);
       } catch (err: any) {
-        toast.error();
+        toast.error('An error occurred.');
       }
     }
   };

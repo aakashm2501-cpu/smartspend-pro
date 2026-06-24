@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { CalendarClock, Loader2, Plus, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 import { useCycles, useDeleteCycle } from '../hooks/useCycles';
@@ -34,7 +35,7 @@ const Cycles: React.FC = () => {
       try {
         await deleteCycle.mutateAsync(id);
       } catch (err: any) {
-        toast.error();
+        toast.error('An error occurred.');
       }
     }
   };

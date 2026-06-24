@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
@@ -72,7 +73,7 @@ export const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, billToEdi
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error();
+      toast.error('An error occurred.');
     }
   };
 

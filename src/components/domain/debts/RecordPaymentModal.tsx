@@ -1,3 +1,4 @@
+import React from 'react';
 import { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
@@ -35,7 +36,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, 
 
     const amt = Number(values.amount);
     if (amt > debt.outstanding_balance) {
-      toast.error();
+      toast.error('An error occurred.');
       return;
     }
 
@@ -44,7 +45,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, 
       onClose();
     } catch (err: any) {
       console.error(err);
-      toast.error();
+      toast.error('An error occurred.');
     }
   };
 

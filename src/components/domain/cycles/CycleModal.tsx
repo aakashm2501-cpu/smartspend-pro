@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
@@ -52,7 +53,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, cycleTo
     e.preventDefault();
     
     if (new Date(values.end_date) <= new Date(values.start_date)) {
-      toast.error();
+      toast.error('An error occurred.');
       return;
     }
     
@@ -79,7 +80,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, cycleTo
       onClose();
     } catch (err: any) {
       console.error(err);
-      toast.error();
+      toast.error('An error occurred.');
     }
   };
 
