@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ { toast } from 'sonner';
 import { supabase } from '../utils/supabase';
 
 const Auth: React.FC = () => {
@@ -31,7 +31,7 @@ const Auth: React.FC = () => {
           console.error('Error Code:', error.code);
           throw error;
         }
-        alert('Check your email for the confirmation link!');
+        toast.success('Check your email for the confirmation link!');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,

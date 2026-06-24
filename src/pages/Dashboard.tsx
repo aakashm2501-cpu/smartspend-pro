@@ -43,20 +43,22 @@ const CFOBriefing = React.memo(({ hasCycle, safeToSpend, projectedEndBalance }: 
 const SafeToSpendCard = React.memo(({ safeToSpend, weeklyAllowance, dailyAllowance }: { safeToSpend: number, weeklyAllowance: number, dailyAllowance: number }) => {
   const safeToSpendParts = safeToSpend.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split('.');
   return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <p className="text-gray-400 font-medium uppercase tracking-wider text-sm">Safe to Spend (Cycle)</p>
-      <h1 className="text-6xl md:text-8xl font-bold mt-2 tracking-tighter text-white">
-        ₹{safeToSpendParts[0]}
-        <span className="text-3xl text-gray-500">.{safeToSpendParts[1] || '00'}</span>
+    <div className="flex flex-col items-center justify-center py-10 md:py-16 relative">
+      <div className="absolute inset-0 bg-brand-orange/5 blur-[100px] rounded-full pointer-events-none" />
+      <p className="text-gray-400 font-medium uppercase tracking-[0.2em] text-xs md:text-sm mb-4">Safe to Spend</p>
+      <h1 className="text-7xl md:text-9xl font-bold tracking-tighter text-white drop-shadow-sm flex items-start">
+        <span className="text-4xl md:text-6xl text-gray-500 font-light mt-2 md:mt-4 mr-1">₹</span>
+        {safeToSpendParts[0]}
+        <span className="text-3xl md:text-5xl text-gray-500 font-medium mt-auto mb-2 md:mb-4 ml-1">.{safeToSpendParts[1] || '00'}</span>
       </h1>
-      <div className="mt-6 flex space-x-4">
-        <div className="bg-brand-dark px-4 py-2 rounded-lg text-center border border-gray-800">
-          <p className="text-xs text-gray-400">Weekly Allowance</p>
-          <p className="text-lg font-semibold text-green-400">{formatINR(weeklyAllowance)}</p>
+      <div className="mt-8 flex space-x-3 md:space-x-6 w-full max-w-sm px-4">
+        <div className="flex-1 bg-brand-dark/50 backdrop-blur-md px-4 py-3 rounded-2xl border border-gray-800/50 text-center">
+          <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Weekly</p>
+          <p className="text-lg md:text-xl font-semibold text-green-400">{formatINR(weeklyAllowance)}</p>
         </div>
-        <div className="bg-brand-dark px-4 py-2 rounded-lg text-center border border-gray-800">
-          <p className="text-xs text-gray-400">Daily Allowance</p>
-          <p className="text-lg font-semibold text-brand-orange">{formatINR(dailyAllowance)}</p>
+        <div className="flex-1 bg-brand-dark/50 backdrop-blur-md px-4 py-3 rounded-2xl border border-gray-800/50 text-center">
+          <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Daily</p>
+          <p className="text-lg md:text-xl font-semibold text-brand-orange">{formatINR(dailyAllowance)}</p>
         </div>
       </div>
     </div>

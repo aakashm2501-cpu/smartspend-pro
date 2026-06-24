@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+ { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
@@ -111,7 +111,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onCl
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Failed to save transaction. See console for details.');
+      toast.error();
     }
   };
 

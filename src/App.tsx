@@ -9,6 +9,7 @@ import Debts from './pages/Debts';
 import Cycles from './pages/Cycles';
 import Settings from './pages/Settings';
 import { useAuth } from './hooks/useAuth';
+import { Toaster } from 'sonner';
 
 function App() {
   const { user, loading } = useAuth();
@@ -25,6 +26,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster theme="dark" position="top-center" />
       <Routes>
         <Route path="/auth" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
         

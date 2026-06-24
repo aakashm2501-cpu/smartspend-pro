@@ -68,14 +68,20 @@ const DashboardLayout: React.FC = () => {
       </main>
 
       {/* Bottom Nav for Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-dark border-t border-gray-800 flex justify-between px-6 py-3 z-50">
-        {navItems.map((item) => (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-dark/80 backdrop-blur-lg border-t border-gray-800/50 flex justify-around px-2 py-3 z-50 pb-safe">
+        {[
+          { to: '/', label: 'Home', icon: <LayoutDashboard size={24} /> },
+          { to: '/transactions', label: 'Ledger', icon: <Receipt size={24} /> },
+          { to: '/bills', label: 'Bills', icon: <CalendarClock size={24} /> },
+          { to: '/goals', label: 'Goals', icon: <Target size={24} /> },
+          { to: '/settings', label: 'Settings', icon: <SettingsIcon size={24} /> },
+        ].map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex flex-col items-center p-2 rounded-lg ${
-                isActive ? 'text-brand-orange' : 'text-gray-400'
+              `flex flex-col items-center p-2 rounded-lg transition-colors ${
+                isActive ? 'text-brand-orange' : 'text-gray-500 hover:text-gray-300'
               }`
             }
           >

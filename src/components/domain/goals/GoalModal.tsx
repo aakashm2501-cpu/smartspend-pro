@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+ { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
@@ -69,7 +69,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, goalToEdi
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Failed to save goal. See console for details.');
+      toast.error();
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+ { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { useForm } from '../../../hooks/useForm';
@@ -52,7 +52,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, cycleTo
     e.preventDefault();
     
     if (new Date(values.end_date) <= new Date(values.start_date)) {
-      alert("End Date must be after Start Date.");
+      toast.error();
       return;
     }
     
@@ -79,7 +79,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({ isOpen, onClose, cycleTo
       onClose();
     } catch (err: any) {
       console.error(err);
-      alert('Failed to save cycle. See console for details.');
+      toast.error();
     }
   };
 

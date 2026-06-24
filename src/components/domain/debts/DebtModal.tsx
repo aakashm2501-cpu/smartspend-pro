@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+ { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
@@ -83,7 +83,7 @@ export const DebtModal: React.FC<DebtModalProps> = ({ isOpen, onClose, debtToEdi
       onClose();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Failed to save debt. See console for details.');
+      toast.error();
     }
   };
 

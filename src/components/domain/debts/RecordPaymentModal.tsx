@@ -1,4 +1,4 @@
-import React from 'react';
+ { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { useForm } from '../../../hooks/useForm';
@@ -35,7 +35,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, 
 
     const amt = Number(values.amount);
     if (amt > debt.outstanding_balance) {
-      alert("Payment amount cannot exceed the outstanding balance.");
+      toast.error();
       return;
     }
 
@@ -44,7 +44,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({ isOpen, 
       onClose();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Failed to record payment.');
+      toast.error();
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Search, Loader2, ArrowUpRight, ArrowDownRight, Edit2, Trash2, Filter } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTransactions, useDeleteTransaction } from '../hooks/useTransactions';
 import { useActiveCycle } from '../hooks/useCycles';
 import { TransactionModal } from '../components/domain/transactions/TransactionModal';
@@ -36,8 +37,9 @@ const Transactions: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this transaction?')) {
       try {
         await deleteTxn.mutateAsync(id);
+        toast.success('Transaction deleted');
       } catch (err: any) {
-        alert('Failed to delete transaction.');
+        toast.error('Failed to delete transaction.');
       }
     }
   };
@@ -48,6 +50,8 @@ const Transactions: React.FC = () => {
     if (!txns) return [];
     
     return txns.filter(t => {
+      if (t.status === 'REVERSED' || t.status === 'ARCHIVED') return false;
+
       const matchesSearch = t.notes?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             t.category.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
@@ -60,7 +64,7 @@ const Transactions: React.FC = () => {
   // Extract unique categories for the filter dropdown based on current txns
   const uniqueCategories = useMemo(() => {
     if (!txns) return [];
-    return Array.from(new Set(txns.map(t => t.category))).sort();
+    return Array.from(new Set(txns.filter(t => t.status !== 'REVERSED' && t.status !== 'ARCHIVED').map(t => t.category))).sort();
   }, [txns]);
 
   if (isLoading) {
