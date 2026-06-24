@@ -51,8 +51,8 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-brand-navy flex flex-col justify-center items-center p-6">
       <div className="w-full max-w-md bg-brand-dark rounded-2xl border border-gray-800 p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-brand-orange mb-2">SmartSpend Pro</h1>
-          <p className="text-gray-400">Your Personal Financial OS</p>
+          <h1 className="text-3xl font-bold text-brand-orange mb-2">{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
+          <p className="text-gray-400">{isSignUp ? 'Create your SmartSpend account to get started.' : 'Sign in to your SmartSpend account.'}</p>
         </div>
         
         {error && (
