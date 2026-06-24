@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { ArrowUpRight, ArrowDownRight, Wallet, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Wallet, AlertCircle, Loader2, Plus } from 'lucide-react';
+import { TransactionModal } from '../components/domain/transactions/TransactionModal';
 import { useActiveCycle } from '../hooks/useCycles';
 import { useTransactions } from '../hooks/useTransactions';
 import { useBills } from '../hooks/useBills';
@@ -13,7 +14,6 @@ import {
   calculateAvailableCash,
   calculateSafeToSpend,
   calculateDailyAllowance,
-  calculateWeeklyAllowance,
   calculateProjectedEndBalance,
   calculateActualIncome,
   calculateIncomeVariance,
@@ -40,27 +40,38 @@ const CFOBriefing = React.memo(({ hasCycle, safeToSpend, projectedEndBalance }: 
   </div>
 ));
 
-const SafeToSpendCard = React.memo(({ safeToSpend, weeklyAllowance, dailyAllowance }: { safeToSpend: number, weeklyAllowance: number, dailyAllowance: number }) => {
+const SafeToSpendHero = React.memo(({ safeToSpend, dailyAllowance, projectedEndBalance, onAddTransaction }: { safeToSpend: number, dailyAllowance: number, projectedEndBalance: number, onAddTransaction: () => void }) => {
   const safeToSpendParts = safeToSpend.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split('.');
   return (
-    <div className="flex flex-col items-center justify-center py-10 md:py-16 relative">
-      <div className="absolute inset-0 bg-brand-orange/5 blur-[100px] rounded-full pointer-events-none" />
-      <p className="text-gray-400 font-medium uppercase tracking-[0.2em] text-xs md:text-sm mb-4">Safe to Spend</p>
-      <h1 className="text-7xl md:text-9xl font-bold tracking-tighter text-white drop-shadow-sm flex items-start">
-        <span className="text-4xl md:text-6xl text-gray-500 font-light mt-2 md:mt-4 mr-1">₹</span>
+    <div className="flex flex-col items-center justify-center pt-16 pb-12 relative w-full border-b border-gray-800/50 bg-[#09090B]">
+      <div className="absolute top-0 inset-x-0 h-40 bg-brand-orange/5 blur-[100px] pointer-events-none" />
+      
+      <p className="text-gray-500 font-medium uppercase tracking-[0.3em] text-xs mb-6">Safe to Spend</p>
+      
+      <h1 className="text-8xl md:text-[10rem] font-bold tracking-tighter text-white drop-shadow-lg flex items-start leading-none">
+        <span className="text-5xl md:text-7xl text-gray-600 font-light mt-2 md:mt-4 mr-2">₹</span>
         {safeToSpendParts[0]}
-        <span className="text-3xl md:text-5xl text-gray-500 font-medium mt-auto mb-2 md:mb-4 ml-1">.{safeToSpendParts[1] || '00'}</span>
+        <span className="text-4xl md:text-6xl text-gray-500 font-medium mt-auto mb-2 md:mb-4 ml-1">.{safeToSpendParts[1] || '00'}</span>
       </h1>
-      <div className="mt-8 flex space-x-3 md:space-x-6 w-full max-w-sm px-4">
-        <div className="flex-1 bg-brand-dark/50 backdrop-blur-md px-4 py-3 rounded-2xl border border-gray-800/50 text-center">
-          <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Weekly</p>
-          <p className="text-lg md:text-xl font-semibold text-green-400">{formatINR(weeklyAllowance)}</p>
+      
+      <div className="mt-12 grid grid-cols-2 gap-4 w-full max-w-md px-6">
+        <div className="flex flex-col items-center justify-center p-4 rounded-3xl bg-[#18181B] border border-gray-800/60 shadow-inner">
+          <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Daily Allowance</p>
+          <p className="text-xl font-semibold text-brand-orange">{formatINR(dailyAllowance)}</p>
         </div>
-        <div className="flex-1 bg-brand-dark/50 backdrop-blur-md px-4 py-3 rounded-2xl border border-gray-800/50 text-center">
-          <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Daily</p>
-          <p className="text-lg md:text-xl font-semibold text-brand-orange">{formatINR(dailyAllowance)}</p>
+        <div className="flex flex-col items-center justify-center p-4 rounded-3xl bg-[#18181B] border border-gray-800/60 shadow-inner">
+          <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Projected End</p>
+          <p className="text-xl font-semibold text-blue-400">{formatINR(projectedEndBalance)}</p>
         </div>
       </div>
+
+      <button 
+        onClick={onAddTransaction}
+        className="mt-10 bg-brand-orange hover:bg-orange-600 text-white rounded-full px-8 py-4 font-semibold text-lg flex items-center shadow-lg shadow-brand-orange/20 transition-transform active:scale-95"
+      >
+        <Plus size={24} className="mr-2" />
+        Add Transaction
+      </button>
     </div>
   );
 });
@@ -136,6 +147,7 @@ const IncomeTrackingPanel = React.memo(({ expectedIncome, actualIncomeTotal, inc
 const Dashboard: React.FC = () => {
   console.time('Dashboard Load');
   const renderCount = useRef(0);
+  const [isTxnModalOpen, setIsTxnModalOpen] = React.useState(false);
   renderCount.current += 1;
 
   const { data: userRecord, isLoading: isUserLoading } = useUserRecord();
@@ -169,7 +181,6 @@ const Dashboard: React.FC = () => {
   
   const safeToSpend = useMemo(() => hasCycle ? calculateSafeToSpend(totalCash, upcomingBills, requiredGoals, upcomingDebts, userRecord) : 0, [hasCycle, totalCash, upcomingBills, requiredGoals, upcomingDebts, userRecord]);
   const dailyAllowance = useMemo(() => hasCycle ? calculateDailyAllowance(safeToSpend, activeCycle) : 0, [hasCycle, safeToSpend, activeCycle]);
-  const weeklyAllowance = useMemo(() => hasCycle ? calculateWeeklyAllowance(dailyAllowance) : 0, [hasCycle, dailyAllowance]);
   const projectedEndBalance = useMemo(() => hasCycle ? calculateProjectedEndBalance(totalCash, activeCycle, txns, upcomingBills, requiredGoals, upcomingDebts) : 0, [hasCycle, totalCash, activeCycle, txns, upcomingBills, requiredGoals, upcomingDebts]);
   
   const spentSoFar = useMemo(() => {
@@ -207,14 +218,14 @@ const Dashboard: React.FC = () => {
   const isDev = import.meta.env.DEV;
 
   const renderContent = () => (
-    <div className="p-6 md:p-10 pb-24 md:pb-10 max-w-7xl mx-auto space-y-8 relative">
+    <div className="w-full relative pb-24 md:pb-10">
       
       {isDev && (
         <div className="fixed bottom-4 right-4 bg-gray-900 border border-gray-700 p-4 rounded-lg shadow-xl text-xs z-50 text-gray-300 opacity-90 hover:opacity-100 transition-opacity pointer-events-none">
           <h4 className="font-bold text-white mb-2 pb-1 border-b border-gray-700">Diagnostics</h4>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
             <span>Renders:</span><span className="text-right text-brand-orange font-mono">{renderCount.current}</span>
-            <span>Cycle ID:</span><span className="text-right text-brand-orange font-mono truncate w-20">{activeCycle?.id?.substring(0,6) || 'None'}</span>
+            <span>Cycle:</span><span className="text-right text-brand-orange font-mono truncate w-20">{activeCycle?.id?.substring(0,6) || 'None'}</span>
             <span>Txns:</span><span className="text-right text-brand-orange font-mono">{txns.length}</span>
             <span>Bills:</span><span className="text-right text-brand-orange font-mono">{b.length}</span>
             <span>Goals:</span><span className="text-right text-brand-orange font-mono">{g.length}</span>
@@ -223,49 +234,57 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <CFOBriefing hasCycle={hasCycle} safeToSpend={safeToSpend} projectedEndBalance={projectedEndBalance} />
+      {hasCycle ? (
+        <SafeToSpendHero 
+          safeToSpend={safeToSpend} 
+          dailyAllowance={dailyAllowance} 
+          projectedEndBalance={projectedEndBalance} 
+          onAddTransaction={() => setIsTxnModalOpen(true)}
+        />
+      ) : (
+        <div className="pt-20 px-6 max-w-7xl mx-auto">
+          <CFOBriefing hasCycle={hasCycle} safeToSpend={safeToSpend} projectedEndBalance={projectedEndBalance} />
+        </div>
+      )}
 
-      <SafeToSpendCard safeToSpend={safeToSpend} weeklyAllowance={weeklyAllowance} dailyAllowance={dailyAllowance} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-brand-dark rounded-2xl p-6 border border-gray-800">
-          <div className="flex justify-between items-center">
-            <h3 className="text-gray-400 font-medium">Available Cash</h3>
-            <div className="bg-green-500/20 p-2 rounded-lg">
-              <ArrowUpRight className="text-green-400" size={20} />
+      <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-[#18181B] rounded-3xl p-6 border border-gray-800/50">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-gray-400 font-medium">Available Cash</h3>
+              <div className="bg-green-500/10 p-2 rounded-xl">
+                <ArrowUpRight className="text-green-400" size={20} />
+              </div>
             </div>
+            <p className="text-4xl font-bold tracking-tight">{formatINR(totalCash)}</p>
+            <p className="text-sm text-green-400 mt-2 font-medium">{daysRemaining} days left in cycle</p>
           </div>
-          <p className="text-3xl font-bold mt-4">{formatINR(totalCash)}</p>
-          <p className="text-sm text-green-400 mt-2">{daysRemaining} days left in cycle</p>
+
+          <div className="bg-[#18181B] rounded-3xl p-6 border border-gray-800/50">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-gray-400 font-medium">Spent So Far</h3>
+              <div className="bg-red-500/10 p-2 rounded-xl">
+                <ArrowDownRight className="text-red-400" size={20} />
+              </div>
+            </div>
+            <p className="text-4xl font-bold tracking-tight">{formatINR(spentSoFar)}</p>
+            <p className="text-sm text-gray-500 mt-2">Based on {txns.length} transactions</p>
+          </div>
         </div>
 
-        <div className="bg-brand-dark rounded-2xl p-6 border border-gray-800">
-          <div className="flex justify-between items-center">
-            <h3 className="text-gray-400 font-medium">Spent So Far</h3>
-            <div className="bg-red-500/20 p-2 rounded-lg">
-              <ArrowDownRight className="text-red-400" size={20} />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-4">{formatINR(spentSoFar)}</p>
-          <p className="text-sm text-gray-400 mt-2">Based on {txns.length} transactions</p>
-        </div>
+        {hasCycle && <ObligationSettlementEngine upcomingBills={upcomingBills} requiredGoals={requiredGoals} upcomingDebts={upcomingDebts} />}
 
-        <div className="bg-brand-dark rounded-2xl p-6 border border-gray-800">
-          <div className="flex justify-between items-center">
-            <h3 className="text-gray-400 font-medium">Projected End Balance</h3>
-            <div className="bg-brand-accent p-2 rounded-lg">
-              <Wallet className="text-blue-400" size={20} />
-            </div>
-          </div>
-          <p className="text-3xl font-bold mt-4 text-blue-400">{formatINR(projectedEndBalance)}</p>
-          <p className="text-sm text-gray-400 mt-2">Based on current spend rate</p>
-        </div>
+        {hasCycle && <IncomeTrackingPanel expectedIncome={expectedIncome} actualIncomeTotal={actualIncomeTotal} incomeVariance={incomeVariance} />}
       </div>
 
-      {hasCycle && <ObligationSettlementEngine upcomingBills={upcomingBills} requiredGoals={requiredGoals} upcomingDebts={upcomingDebts} />}
-
-      {hasCycle && <IncomeTrackingPanel expectedIncome={expectedIncome} actualIncomeTotal={actualIncomeTotal} incomeVariance={incomeVariance} />}
-      
+      {hasCycle && (
+        <TransactionModal 
+          isOpen={isTxnModalOpen}
+          onClose={() => setIsTxnModalOpen(false)}
+          activeCycle={activeCycle}
+        />
+      )}
     </div>
   );
 

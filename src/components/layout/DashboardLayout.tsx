@@ -26,10 +26,12 @@ const DashboardLayout: React.FC = () => {
     initials = userRecord.email.substring(0, 2).toUpperCase();
   }
 
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
   return (
     <div className="flex h-screen bg-brand-navy text-white overflow-hidden">
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-brand-dark border-r border-gray-800">
+      <aside className="hidden md:flex flex-col w-64 bg-brand-dark border-r border-gray-800 z-10">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-brand-orange tracking-tight">SmartSpend Pro</h1>
         </div>
@@ -63,22 +65,21 @@ const DashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-brand-navy">
+      <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-brand-navy pb-20 md:pb-0">
         <Outlet />
       </main>
 
       {/* Bottom Nav for Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-dark/80 backdrop-blur-lg border-t border-gray-800/50 flex justify-around px-2 py-3 z-50 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#09090B]/90 backdrop-blur-xl border-t border-gray-800/50 flex justify-around px-2 py-2 z-50 pb-safe">
         {[
           { to: '/', label: 'Home', icon: <LayoutDashboard size={24} /> },
           { to: '/transactions', label: 'Ledger', icon: <Receipt size={24} /> },
-          { to: '/bills', label: 'Bills', icon: <CalendarClock size={24} /> },
-          { to: '/goals', label: 'Goals', icon: <Target size={24} /> },
-          { to: '/settings', label: 'Settings', icon: <SettingsIcon size={24} /> },
+          { to: '/debts', label: 'Debts', icon: <Target size={24} /> },
         ].map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={() => setIsMenuOpen(false)}
             className={({ isActive }) =>
               `flex flex-col items-center p-2 rounded-lg transition-colors ${
                 isActive ? 'text-brand-orange' : 'text-gray-500 hover:text-gray-300'
@@ -89,7 +90,56 @@ const DashboardLayout: React.FC = () => {
             <span className="text-[10px] mt-1 font-medium">{item.label}</span>
           </NavLink>
         ))}
+        
+        {/* Menu Button */}
+        <button
+          onClick={() => setIsMenuOpen(true)}
+          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            isMenuOpen ? 'text-brand-orange' : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          <SettingsIcon size={24} />
+          <span className="text-[10px] mt-1 font-medium">Menu</span>
+        </button>
       </nav>
+
+      {/* Mobile Menu Bottom Sheet */}
+      {isMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 flex flex-col justify-end">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <div className="relative bg-[#09090B] border-t border-gray-800 rounded-t-3xl p-6 pb-24 animate-in slide-in-from-bottom-full duration-300">
+            <div className="w-12 h-1.5 bg-gray-800 rounded-full mx-auto mb-6" />
+            <h2 className="text-xl font-semibold mb-4 px-2">More</h2>
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { to: '/bills', label: 'Bills', icon: <CalendarClock size={24} /> },
+                { to: '/goals', label: 'Goals', icon: <Target size={24} /> },
+                { to: '/cycles', label: 'Cycles', icon: <CalendarClock size={24} /> },
+                { to: '/settings', label: 'Settings', icon: <SettingsIcon size={24} /> },
+              ].map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center p-3 rounded-2xl border ${
+                      isActive 
+                        ? 'bg-brand-orange/10 border-brand-orange/30 text-brand-orange' 
+                        : 'bg-[#18181B] border-gray-800/50 text-gray-400 hover:text-white'
+                    }`
+                  }
+                >
+                  {item.icon}
+                  <span className="text-[10px] mt-2 font-medium">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
