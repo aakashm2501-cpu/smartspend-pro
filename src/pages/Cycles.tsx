@@ -1,4 +1,4 @@
- { toast } from 'sonner';
+import { toast } from 'sonner';
 import { CalendarClock, Loader2, Plus, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 import { useCycles, useDeleteCycle } from '../hooks/useCycles';
 import { CycleModal } from '../components/domain/cycles/CycleModal';

@@ -1,4 +1,4 @@
- { toast } from 'sonner';
+import { toast } from 'sonner';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';

@@ -1,4 +1,4 @@
- { toast } from 'sonner';
+import { toast } from 'sonner';
 import { Plus, Loader2, Edit2, Trash2, CheckCircle2, AlertTriangle, ArrowUpRight, ArrowDownRight, IndianRupee } from 'lucide-react';
 import { useDebts, useDeleteDebt } from '../hooks/useDebts';
 import { DebtModal } from '../components/domain/debts/DebtModal';

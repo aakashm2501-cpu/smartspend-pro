@@ -1,4 +1,4 @@
- { toast } from 'sonner';
+import { toast } from 'sonner';
 import { supabase } from '../utils/supabase';
 
 const Auth: React.FC = () => {
