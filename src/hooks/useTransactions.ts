@@ -44,8 +44,10 @@ export const useTransactions = (cycleId?: string) => {
   const { user } = useAuth();
   return useQuery({
     queryKey: ['transactions', cycleId],
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!cycleId,
     queryFn: async () => {
+      if (!cycleId) return [] as Transaction[];
+
       let query = supabase
         .from('transactions')
         .select('*')
@@ -98,11 +100,11 @@ export const useCreateTransaction = () => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['active-cycle'] });
-      queryClient.invalidateQueries({ queryKey: ['debts'] });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      if (variables.debt_id || data?.debt_id) queryClient.invalidateQueries({ queryKey: ['debts'] });
+      if (variables.goal_id || data?.goal_id) queryClient.invalidateQueries({ queryKey: ['goals'] });
+      if (variables.bill_id || data?.bill_id) queryClient.invalidateQueries({ queryKey: ['bills'] });
     },
   });
 };
@@ -163,11 +165,11 @@ export const useUpdateTransaction = () => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['active-cycle'] });
-      queryClient.invalidateQueries({ queryKey: ['debts'] });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      if (variables.debt_id || data?.debt_id) queryClient.invalidateQueries({ queryKey: ['debts'] });
+      if (variables.goal_id || data?.goal_id) queryClient.invalidateQueries({ queryKey: ['goals'] });
+      if (variables.bill_id || data?.bill_id) queryClient.invalidateQueries({ queryKey: ['bills'] });
     },
   });
 };
@@ -201,12 +203,13 @@ export const useDeleteTransaction = () => {
         const change = oldTxn.type === 'expense' ? Number(oldTxn.amount) : -Number(oldTxn.amount);
         await syncGoalAmount(oldTxn.goal_id, -change);
       }
+      return oldTxn;
     },
-    onSuccess: () => {
+    onSuccess: (oldTxn) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['active-cycle'] });
-      queryClient.invalidateQueries({ queryKey: ['debts'] });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      if (oldTxn?.debt_id) queryClient.invalidateQueries({ queryKey: ['debts'] });
+      if (oldTxn?.goal_id) queryClient.invalidateQueries({ queryKey: ['goals'] });
+      if (oldTxn?.bill_id) queryClient.invalidateQueries({ queryKey: ['bills'] });
     },
   });
 };
