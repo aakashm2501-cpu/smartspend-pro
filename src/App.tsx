@@ -8,18 +8,23 @@ import Debts from './pages/Debts';
 import Cycles from './pages/Cycles';
 import Settings from './pages/Settings';
 import PlanHub from './pages/PlanHub';
+import Auth from './pages/Auth';
 import { useAuth } from './hooks/useAuth';
 import { Toaster } from 'sonner';
 
 function App() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-navy flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-orange"></div>
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-400"></div>
       </div>
     );
+  }
+
+  if (!user) {
+    return <Auth />;
   }
 
   return (
