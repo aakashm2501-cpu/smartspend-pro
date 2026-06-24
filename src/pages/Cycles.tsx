@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarClock, Loader2, Plus, Edit2, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { CalendarClock, Loader2, Plus, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 import { useCycles, useDeleteCycle } from '../hooks/useCycles';
 import { CycleModal } from '../components/domain/cycles/CycleModal';
 import type { Cycle } from '../types/database';
@@ -125,7 +125,7 @@ const Cycles: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-800/50">
                     <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Starting Balance</p>
-                    <p className="font-medium">{formatINR(cycle.starting_balance)}</p>
+                    <p className="font-medium">{formatINR(cycle.starting_balance || 0)}</p>
                   </div>
                   <div className="bg-blue-500/5 p-3 rounded-lg border border-blue-500/10">
                     <p className="text-xs text-blue-400/80 uppercase tracking-wider mb-1">Expected Income</p>

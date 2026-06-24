@@ -1,0 +1,93 @@
+[
+  {
+    "name": "Initial Available Cash",
+    "input": "Starting Balance 10000, 0 txns",
+    "expected": 10000,
+    "actual": 10000,
+    "passed": true
+  },
+  {
+    "name": "Salary Income Available Cash",
+    "input": "+100k Salary",
+    "expected": 110000,
+    "actual": 110000,
+    "passed": true
+  },
+  {
+    "name": "Salary Income Tracking",
+    "input": "100k Salary",
+    "expected": 100000,
+    "actual": 100000,
+    "passed": true
+  },
+  {
+    "name": "Bill Expected",
+    "input": "30k Bill Created",
+    "expected": 30000,
+    "actual": 30000,
+    "passed": true
+  },
+  {
+    "name": "Bill Remaining after Payment",
+    "input": "Paid 30k",
+    "expected": 0,
+    "actual": 0,
+    "passed": true
+  },
+  {
+    "name": "Available Cash after Rent",
+    "input": "110k - 30k",
+    "expected": 80000,
+    "actual": 80000,
+    "passed": true
+  },
+  {
+    "name": "Available Cash after Borrowing",
+    "input": "80k + 50k",
+    "expected": 130000,
+    "actual": 130000,
+    "passed": true
+  },
+  {
+    "name": "Income Tracking ignores Debt Origination",
+    "input": "100k Salary + 50k Borrowed",
+    "expected": 100000,
+    "actual": 100000,
+    "passed": true
+  },
+  {
+    "name": "Debt Remaining after Repayment",
+    "input": "Expected 5000 - Paid 5000",
+    "expected": 0,
+    "actual": 0,
+    "passed": true
+  },
+  {
+    "name": "Projected End Balance (Discretionary Only)",
+    "input": "124000 - (100/day * 19days)",
+    "expected": 122100,
+    "actual": 122100,
+    "passed": true
+  },
+  {
+    "name": "Income Tracking ignores Refunds",
+    "input": "Still 100k",
+    "expected": 100000,
+    "actual": 100000,
+    "passed": true
+  },
+  {
+    "name": "Available Cash after Refund",
+    "input": "124k + 500",
+    "expected": 124500,
+    "actual": 124500,
+    "passed": true
+  },
+  {
+    "name": "Available Cash after Txn Reversal",
+    "input": "Back to 124k",
+    "expected": 124000,
+    "actual": 124000,
+    "passed": true
+  }
+]

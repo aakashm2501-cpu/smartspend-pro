@@ -98,9 +98,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onCl
         notes: values.notes || null,
         cycle_id: activeCycle.id,
         source_type: 'Manual', // Defaulting per requirements
-        bill_id: values.linked_bill || null,
-        goal_id: values.linked_goal || null,
-        debt_id: values.linked_debt || null,
+        bill_id: values.linked_bill || undefined,
+        goal_id: values.linked_goal || undefined,
+        debt_id: values.linked_debt || undefined,
       };
 
       if (transactionToEdit) {

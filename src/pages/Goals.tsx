@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, TrendingUp, Loader2, Plus, Edit2, Trash2, ShieldAlert, Plane, Car, Home, TrendingUp as InvestmentIcon, Hash } from 'lucide-react';
+import { Target, Loader2, Plus, Edit2, Trash2, ShieldAlert, Plane, Car, Home, TrendingUp as InvestmentIcon } from 'lucide-react';
 import { useGoals, useDeleteGoal } from '../hooks/useGoals';
 import { useUserRecord } from '../hooks/useUser';
 import { calculateSingleGoalContribution } from '../utils/engines';
