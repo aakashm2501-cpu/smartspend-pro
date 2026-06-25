@@ -20,6 +20,9 @@ const Auth: React.FC = () => {
         const response = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
         });
         console.log('--- SIGNUP RESPONSE ---');
         console.log('Full Response:', response);

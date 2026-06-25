@@ -10,13 +10,26 @@ export const useUserRecord = () => {
     queryKey: ['user-record', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', user!.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No user record found, try to create one
+          const { data: newData, error: insertError } = await supabase
+            .from('users')
+            .insert([{ id: user!.id, email: user!.email }])
+            .select('*')
+            .single();
+            
+          if (insertError) throw insertError;
+          return newData as DBUser;
+        }
+        throw error;
+      }
       return data as DBUser;
     },
   });

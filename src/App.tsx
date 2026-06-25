@@ -24,7 +24,12 @@ function App() {
   }
 
   if (!user) {
-    return <Auth />;
+    return (
+      <>
+        <Toaster theme="dark" position="top-center" />
+        <Auth />
+      </>
+    );
   }
 
   return (
